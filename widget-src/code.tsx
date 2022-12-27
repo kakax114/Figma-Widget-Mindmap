@@ -3,6 +3,8 @@ const { AutoLayout, SVG, Text, Image, Frame, Line, Rectangle, Ellipse, useSynced
 
 const App = () => {
   // const [text, setText] = useSyncedState("text", "Hello")
+  const [background, setBackground] = useSyncedState("background", "https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-light.png")
+
   const [data, setData] = useSyncedState("data", 
         //2d array, parent array is the group, child array is the items
         [
@@ -15,7 +17,9 @@ const App = () => {
             },
           ],
         ]
-   )
+  )
+
+  
   
   //function to get the position of the input box
   const getXPos = () => {
@@ -486,8 +490,6 @@ const App = () => {
     </svg>
   `;
 
-  const background = 'background.png'
-
 
     
 
@@ -500,6 +502,7 @@ const App = () => {
         scaleMode: 'tile',
         scalingFactor: 0.1,
       }}
+      cornerRadius={13}
     >
     {data.map((group, i) => {
         return (

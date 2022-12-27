@@ -3,6 +3,7 @@
   var { widget } = figma;
   var { AutoLayout, SVG, Text, Image, Frame, Line, Rectangle, Ellipse, useSyncedState, usePropertyMenu, Input, useEffect, waitForTask } = widget;
   var App = () => {
+    const [background, setBackground] = useSyncedState("background", "https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-light.png");
     const [data, setData] = useSyncedState("data", [
       [
         {
@@ -338,7 +339,6 @@
       <path fill-rule="evenodd" clip-rule="evenodd" d="M17 8H15V15H8V17H15V24H17V17H24V15H17V8Z" fill="black" fill-opacity="0.4"/>
     </svg>
   `;
-    const background = "background.png";
     return /* @__PURE__ */ figma.widget.h(AutoLayout, {
       direction: "horizontal",
       fill: {
@@ -346,7 +346,8 @@
         src: background,
         scaleMode: "tile",
         scalingFactor: 0.1
-      }
+      },
+      cornerRadius: 13
     }, data.map((group, i) => {
       return /* @__PURE__ */ figma.widget.h(AutoLayout, {
         key: i,

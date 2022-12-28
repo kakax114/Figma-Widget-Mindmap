@@ -2,9 +2,11 @@ const { widget } = figma
 const { AutoLayout, SVG, Text, Image, Frame, Line, Rectangle, Ellipse, useSyncedState, usePropertyMenu, Input, useEffect, waitForTask } = widget
 
 const App = () => {
-  // const [text, setText] = useSyncedState("text", "Hello")
   const [background, setBackground] = useSyncedState("background", "https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-light.png")
-
+  const [strokeColor, setStrokeColor] = useSyncedState("strokeColor", "#ffffff")
+  const [rgb, setRgb] = useSyncedState("rgb", [0.48, 0.92, 0.67, 0.47, 0.85, 0.39])
+  const [fontColor, setFontColor] = useSyncedState("fontColor", "#ffffff")
+  const [lineColor, setLineColor] = useSyncedState("lineColor", "#6DDC93")
   const [data, setData] = useSyncedState("data", 
         //2d array, parent array is the group, child array is the items
         [
@@ -18,8 +20,89 @@ const App = () => {
           ],
         ]
   )
-
   
+  usePropertyMenu([
+    {
+      itemType: 'dropdown',
+      propertyName: 'Background',
+      selectedOption: background === 'https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-light.png' ? 'light' : 'dark',
+      tooltip: 'Change the background color',
+      options: [
+        {option: 'light', label: 'Light'},
+        {option: 'dark', label: 'Dark'},
+      ]
+    },
+    {
+      itemType: 'color-selector',
+      propertyName: 'colors',
+      tooltip: 'Note color',
+      selectedOption: rgb[0] === 0.48 ? "#78D965" : rgb[0] === 0.55 ? "#6F66EE" : rgb[0] === 0.97 ? "#F9DB57" : rgb[0] === 0.24 ? "#3F474C" : "#ffffff",
+      options: [{option: "#78D965", tooltip: "Lime"}, {option: "#6F66EE", tooltip: "Jacaranda"}, {option: "#F9DB57", tooltip: "Mustard"}, {option: "#3F474C", tooltip: "Coal"}, {option: "#ffffff", tooltip: "Snow"} ],
+    },
+  ], ({propertyName, propertyValue}) => {
+    if(propertyName === 'Background') {
+      if(propertyValue === 'light') {
+        setBackground('https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-light.png')
+        if (rgb[0] != 1) {
+          setStrokeColor('#ffffff')
+        }
+      } else {
+        setBackground('https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-dark.png')
+        setStrokeColor('#212226')
+      }
+    }
+    if(propertyName === 'colors') {
+      if (propertyValue === "#78D965") { //Lime
+        setRgb([0.48, 0.90, 0.50, 0.47, 0.85, 0.39])
+        setFontColor('#ffffff')
+        setLineColor('#6DDC93')
+        if (background === 'https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-light.png') {
+          setStrokeColor('#ffffff')
+        } else {
+          setStrokeColor('#212226')
+        }
+      } else if (propertyValue === "#6F66EE") { //Jacaranda
+        setRgb([0.55, 0.4, 0.96, 0.39, 0.35, 0.85])
+        setFontColor('#ffffff')
+        setLineColor('#B18CED')
+        if (background === 'https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-light.png') {
+          setStrokeColor('#ffffff')
+        } else {
+          setStrokeColor('#212226')
+        }
+      } else if (propertyValue === "#F9DB57") { //Mustard
+        setRgb([0.97, 0.8, 0.4, 0.95, 0.73, 0.35])
+        setFontColor('#3F474C')
+        setLineColor('#FF971D')
+        if (background === 'https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-light.png') {
+          setStrokeColor('#ffffff')
+        } else {
+          setStrokeColor('#212226')
+        }
+      } else if (propertyValue === "#3F474C") { //Coal
+        setRgb([0.24, 0.27, 0.29, 0.22, 0.25, 0.27])
+        setFontColor('#ffffff')
+        setLineColor('#CEC0CF')
+        if (background === 'https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-light.png') {
+          setStrokeColor('#ffffff')
+        } else {
+          setStrokeColor('#212226')
+        }
+      } else if (propertyValue === "#ffffff") { //Snow
+        setRgb([1, 1, 1, 1, 1, 1])
+        setFontColor('#3F474C')
+        setStrokeColor('#F5F5F5')
+        setLineColor('#939B9B')
+      }
+    }
+  })
+  
+
+
+
+
+
+
   
   //function to get the position of the input box
   const getXPos = () => {
@@ -222,7 +305,7 @@ const App = () => {
               y={75}
               length={diagonalLines[i]}
               rotation={angles[i]}
-              stroke={"#B18CED"}
+              stroke={lineColor}
               strokeWidth={4}
               opacity={0.5}
               strokeCap={"round"}
@@ -486,7 +569,7 @@ const App = () => {
   const buttonSvgSrc = `
     <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="16" cy="16" r="15.5" fill="#F3F3F4"/>
-      <path fill-rule="evenodd" clip-rule="evenodd" d="M17 8H15V15H8V17H15V24H17V17H24V15H17V8Z" fill="black" fill-opacity="0.4"/>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M17 8H15V15H8V17H15V24H17V17H24V15H17V8Z" fill="#000000" fill-opacity="0.4"/>
     </svg>
   `;
 
@@ -502,7 +585,8 @@ const App = () => {
         scaleMode: 'tile',
         scalingFactor: 0.1,
       }}
-      cornerRadius={13}
+      cornerRadius={20}
+      padding={5}
     >
     {data.map((group, i) => {
         return (
@@ -639,8 +723,8 @@ const App = () => {
                           { x: 0, y: 0 }
                         ],
                         gradientStops: [
-                          { position: 0, color: { r: 0.48, g: 0.92, b: 0.67, a: 1 } },
-                          { position: 1, color: { r: 0.47, g: 0.85, b: 0.39, a: 1 } }
+                          { position: 0, color: { r: rgb[0], g: rgb[1], b: rgb[2], a: 1 } },
+                          { position: 1, color: { r: rgb[3], g: rgb[4], b: rgb[5], a: 1 } }
                         ]
                       }}
                       
@@ -653,6 +737,7 @@ const App = () => {
                         width={100}
                         height={100}
                         value={item.text}
+                        fontWeight={600}
                         onTextEditEnd={(e) => {
                           let newData = [...data]
                           newData[i][j].text = e.characters
@@ -660,18 +745,16 @@ const App = () => {
                         }}
                         placeholder="New note"
                         fontSize={13}
-                        fill="#ffffff"
+                        fill={fontColor}
                         inputFrameProps={{
-                          // fill: "#ffffff",
-                          //fill with gradient
-                          stroke: "#ffffff",
+                          stroke: strokeColor,
                           strokeWidth: 3,
                           hoverStyle: {
                             stroke: "#4CA7F7",
                           },
 
                           cornerRadius: 16,
-                          padding: 8,
+                          padding: 9,
                         }}
 
 

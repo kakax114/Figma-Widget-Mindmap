@@ -1,6 +1,8 @@
 const { widget } = figma
 const { AutoLayout, SVG, Text, Image, Frame, Line, Rectangle, Ellipse, useSyncedState, usePropertyMenu, Input, useEffect, waitForTask } = widget
 
+
+
 const App = () => {
   const [background, setBackground] = useSyncedState("background", "https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-light.png")
   const [strokeColor, setStrokeColor] = useSyncedState("strokeColor", "#ffffff")
@@ -8,17 +10,17 @@ const App = () => {
   const [fontColor, setFontColor] = useSyncedState("fontColor", "#ffffff")
   const [lineColor, setLineColor] = useSyncedState("lineColor", "#6DDC93")
   const [data, setData] = useSyncedState("data", 
-        //2d array, parent array is the group, child array is the items
-        [
-          //2d array, parent array is the group, child array is the items
-          [
-            {
-              id: 'a',
-              text: "",
-              linkTo: '-',
-            },
-          ],
-        ]
+    //2d array, parent array is the group, child array is the items
+    [
+      //2d array, parent array is the group, child array is the items
+      [
+        {
+          id: 'a',
+          text: "",
+          linkTo: '-',
+        },
+      ],
+    ]
   )
   
   usePropertyMenu([
@@ -36,10 +38,15 @@ const App = () => {
       itemType: 'color-selector',
       propertyName: 'colors',
       tooltip: 'Note color',
-      selectedOption: rgb[0] === 0.48 ? "#78D965" : rgb[0] === 0.55 ? "#6F66EE" : rgb[0] === 0.97 ? "#F9DB57" : rgb[0] === 0.24 ? "#3F474C" : "#ffffff",
-      options: [{option: "#78D965", tooltip: "Lime"}, {option: "#6F66EE", tooltip: "Jacaranda"}, {option: "#F9DB57", tooltip: "Mustard"}, {option: "#3F474C", tooltip: "Coal"}, {option: "#ffffff", tooltip: "Snow"} ],
+      selectedOption: rgb[0] === 0.48 ? "#78D965" : rgb[0] === 0.55 ? "#6F66EE" : rgb[0] === 0.97 ? "#F9DB57" : rgb[0] === 0.24 ? "#3F474C" : rgb[0] === 0.95 ? "#ffffff" : "#ffffff",
+      options: [{option: "#78D965", tooltip: "Lime"}, {option: "#6F66EE", tooltip: "Jacaranda"}, {option: "#F9DB57", tooltip: "Mustard"}, {option: "#3F474C", tooltip: "Coal"}, {option: "#FFF", tooltip: "Snow"}],
     },
-  ], ({propertyName, propertyValue}) => {
+    {
+      itemType: 'action',
+      propertyName: 'Export',
+      tooltip: 'Export',
+    },
+  ], ({propertyName, propertyValue}) => {      
     if(propertyName === 'Background') {
       if(propertyValue === 'light') {
         setBackground('https://raw.githubusercontent.com/kakax114/Figma-Widget-Mindmap/main/background-light.png')
@@ -52,6 +59,7 @@ const App = () => {
       }
     }
     if(propertyName === 'colors') {
+      console.log(propertyValue)
       if (propertyValue === "#78D965") { //Lime
         setRgb([0.48, 0.90, 0.50, 0.47, 0.85, 0.39])
         setFontColor('#ffffff')
@@ -80,6 +88,7 @@ const App = () => {
           setStrokeColor('#212226')
         }
       } else if (propertyValue === "#3F474C") { //Coal
+        console.log('coal')
         setRgb([0.24, 0.27, 0.29, 0.22, 0.25, 0.27])
         setFontColor('#ffffff')
         setLineColor('#CEC0CF')
@@ -88,17 +97,61 @@ const App = () => {
         } else {
           setStrokeColor('#212226')
         }
-      } else if (propertyValue === "#ffffff") { //Snow
-        setRgb([1, 1, 1, 1, 1, 1])
+      } else if (propertyValue === "#FFF") { //Snow
+        console.log('snow')
+        setRgb([0.95, 0.95, 0.95, 0.95, 0.95, 0.95])
         setFontColor('#3F474C')
-        setStrokeColor('#F5F5F5')
-        setLineColor('#939B9B')
+        setLineColor('#CEC0CF')
+        setStrokeColor('#ffffff')
       }
     }
+    if (propertyName === 'Export') {
+      return new Promise((resolve) => {
+        figma.showUI(exportMindmap(), {title: 'Copy to clipbord'})
+      })
+    }
   })
-  
 
 
+
+  const exportMindmap = () => {
+    // make a copy of data
+    const dataCopy = JSON.parse(JSON.stringify(data))
+
+    // merge the dataCopy into one array
+    const dataCopyMerged = []
+    for (let i = 0; i < dataCopy.length; i++) {
+      for (let j = 0; j < dataCopy[i].length; j++) {
+        dataCopyMerged.push(dataCopy[i][j])
+      }
+    }
+
+    // loop dataCopyMerged and remove any item that has linkTo === '-' and id != 'a'
+    for (let i = 0; i < dataCopyMerged.length; i++) {
+      if (dataCopyMerged[i].linkTo === '-' && dataCopyMerged[i].id != 'a') {
+        dataCopyMerged.splice(i, 1)
+        i--
+      }
+    }
+    // sort the dataCopyMerged by id use local compare
+    dataCopyMerged.sort((a, b) => a.id.localeCompare(b.id))
+
+    let outputString = `${dataCopyMerged[0].text}`+'\n'
+
+    // loop dataCopyMerged and add the output string
+    for (let i = 1; i < dataCopyMerged.length; i++) {
+      // based on the leghth of the id, add the correct number of half-width tabs
+      let spaces = ''
+      for (let j = 0; j < dataCopyMerged[i].id.length-2; j++) {
+        spaces += ' '
+      }
+      // outputString += '<p style="text-indent:'+`${spaces}`+ 'px">'+`${dataCopyMerged[i].id} ${dataCopyMerged[i].linkTo} ${dataCopyMerged[i].text}`+'</p>'
+      outputString +=`${spaces}`+`${dataCopyMerged[i].text}`+'\n'
+    }
+
+    console.log('<pre>'+outputString+'</pre>')
+    return ('<pre>'+outputString+'</pre>')
+  }
 
 
 
@@ -224,7 +277,7 @@ const App = () => {
             }
           }
         } catch {
-          console.log('error')
+          // console.log('error')
         }
       }
     }
@@ -315,7 +368,7 @@ const App = () => {
       return lines
     }
     } catch {
-      console.log('error')
+      // console.log('error')
     }
     
   
@@ -572,8 +625,6 @@ const App = () => {
       <path fill-rule="evenodd" clip-rule="evenodd" d="M17 8H15V15H8V17H15V24H17V17H24V15H17V8Z" fill="#000000" fill-opacity="0.4"/>
     </svg>
   `;
-
-
     
 
   return (

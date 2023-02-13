@@ -32,8 +32,13 @@
         itemType: "color-selector",
         propertyName: "colors",
         tooltip: "Note color",
-        selectedOption: rgb[0] === 0.48 ? "#78D965" : rgb[0] === 0.55 ? "#6F66EE" : rgb[0] === 0.97 ? "#F9DB57" : rgb[0] === 0.24 ? "#3F474C" : "#ffffff",
-        options: [{ option: "#78D965", tooltip: "Lime" }, { option: "#6F66EE", tooltip: "Jacaranda" }, { option: "#F9DB57", tooltip: "Mustard" }, { option: "#3F474C", tooltip: "Coal" }, { option: "#ffffff", tooltip: "Snow" }]
+        selectedOption: rgb[0] === 0.48 ? "#78D965" : rgb[0] === 0.55 ? "#6F66EE" : rgb[0] === 0.97 ? "#F9DB57" : rgb[0] === 0.24 ? "#3F474C" : rgb[0] === 0.95 ? "#ffffff" : "#ffffff",
+        options: [{ option: "#78D965", tooltip: "Lime" }, { option: "#6F66EE", tooltip: "Jacaranda" }, { option: "#F9DB57", tooltip: "Mustard" }, { option: "#3F474C", tooltip: "Coal" }, { option: "#FFF", tooltip: "Snow" }]
+      },
+      {
+        itemType: "action",
+        propertyName: "Export",
+        tooltip: "Export"
       }
     ], ({ propertyName, propertyValue }) => {
       if (propertyName === "Background") {
@@ -48,6 +53,7 @@
         }
       }
       if (propertyName === "colors") {
+        console.log(propertyValue);
         if (propertyValue === "#78D965") {
           setRgb([0.48, 0.9, 0.5, 0.47, 0.85, 0.39]);
           setFontColor("#ffffff");
@@ -76,6 +82,7 @@
             setStrokeColor("#212226");
           }
         } else if (propertyValue === "#3F474C") {
+          console.log("coal");
           setRgb([0.24, 0.27, 0.29, 0.22, 0.25, 0.27]);
           setFontColor("#ffffff");
           setLineColor("#CEC0CF");
@@ -84,14 +91,48 @@
           } else {
             setStrokeColor("#212226");
           }
-        } else if (propertyValue === "#ffffff") {
-          setRgb([1, 1, 1, 1, 1, 1]);
+        } else if (propertyValue === "#FFF") {
+          console.log("snow");
+          setRgb([0.95, 0.95, 0.95, 0.95, 0.95, 0.95]);
           setFontColor("#3F474C");
-          setStrokeColor("#F5F5F5");
-          setLineColor("#939B9B");
+          setLineColor("#CEC0CF");
+          setStrokeColor("#ffffff");
         }
       }
+      if (propertyName === "Export") {
+        return new Promise((resolve) => {
+          figma.showUI(exportMindmap(), { title: "Copy to clipbord" });
+        });
+      }
     });
+    const exportMindmap = () => {
+      const dataCopy = JSON.parse(JSON.stringify(data));
+      const dataCopyMerged = [];
+      for (let i = 0; i < dataCopy.length; i++) {
+        for (let j = 0; j < dataCopy[i].length; j++) {
+          dataCopyMerged.push(dataCopy[i][j]);
+        }
+      }
+      for (let i = 0; i < dataCopyMerged.length; i++) {
+        if (dataCopyMerged[i].linkTo === "-" && dataCopyMerged[i].id != "a") {
+          dataCopyMerged.splice(i, 1);
+          i--;
+        }
+      }
+      dataCopyMerged.sort((a, b) => a.id.localeCompare(b.id));
+      let outputString = `${dataCopyMerged[0].text}
+`;
+      for (let i = 1; i < dataCopyMerged.length; i++) {
+        let spaces = "";
+        for (let j = 0; j < dataCopyMerged[i].id.length - 2; j++) {
+          spaces += " ";
+        }
+        outputString += `${spaces}${dataCopyMerged[i].text}
+`;
+      }
+      console.log("<pre>" + outputString + "</pre>");
+      return "<pre>" + outputString + "</pre>";
+    };
     const getXPos = () => {
       return 100;
     };
@@ -179,7 +220,6 @@
               }
             }
           } catch (e) {
-            console.log("error");
           }
         }
       }
@@ -234,7 +274,6 @@
           return lines;
         }
       } catch (e) {
-        console.log("error");
       }
     };
     const deleteItem = (id, linkTo, groupIndex2, itemIndex2) => {
